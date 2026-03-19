@@ -1,0 +1,52 @@
+services:
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: gestor_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: gestor_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  backend:
+    image: python:3.13-slim
+    container_name: gestor_backend
+    restart: unless-stopped
+    working_dir: /app
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_HOST: postgres
+      REDIS_URL: redis://redis:6379
+      SECRET_KEY: ${SECRET_KEY}
+      UV_PROJECT_ENVIRONMENT: /tmp/.venv
+    depends_on:
+      - postgres
+      - redis
+    command: >
+      sh -c "pip install uv &&
+             uv sync &&
+             uv run uvicorn main:app --host 0.0.0.0 --reload"
+
+volumes:
+  postgres_data:
+  redis_data:
