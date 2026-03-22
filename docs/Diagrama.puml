@@ -1,0 +1,45 @@
+@startuml
+
+entity Usuario {
+    * idUsuario : SERIAL <<PK>>
+    --
+    * nombre : VARCHAR(255)
+    * rol : VARCHAR(255)
+    * mail : VARCHAR(255) <<unique>>
+    * contrasena : VARCHAR(255)
+    * fecha_creacion : TIMESTAMP
+}
+
+entity Tablon {
+    * idTabla : SERIAL <<PK>>
+    --
+    * nombre : VARCHAR(255)
+    * dueno : INTEGER <<FK>>
+    * fecha_creacion : TIMESTAMP
+}
+
+entity Tarea {
+    * id_tarea : SERIAL <<PK>>
+    --
+    * nombre : VARCHAR(255)
+    descripcion : TEXT
+    * fecha_creacion : TIMESTAMP
+    * estado : ENUM(pendiente, en_progreso, completada, cancelada)
+    * usuario_asignado : INTEGER <<FK>>
+    * id_tablero : INTEGER <<FK>>
+}
+
+entity UsuarioTablero {
+    * idUsuarioTablero : SERIAL <<PK>>
+    --
+    * id_usuario : INTEGER <<FK>>
+    * id_tablero : INTEGER <<FK>>
+}
+
+Usuario ||--o{ Tablon : "es dueño de"
+Usuario ||--o{ Tarea : "tiene asignada"
+Tablon ||--o{ Tarea : "contiene"
+Usuario }o--o{ Tablon : "participa en"
+(Usuario, Tablon) .. UsuarioTablero
+
+@enduml
