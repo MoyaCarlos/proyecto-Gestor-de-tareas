@@ -1,1 +1,1 @@
-console.log("¡El frontend está conectado y listo para trabajar!");
+console.log("El frontend está conectado");
