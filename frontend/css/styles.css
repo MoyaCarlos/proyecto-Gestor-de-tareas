@@ -1,0 +1,31 @@
+/**
+ * Archivo de estilos
+ * 
+ * Los estilos CSS los agrego después
+ * 
+ * Estructura de clases que hice:
+ * - .auth-container, .auth-form: formularios de login y de registro
+ * - .main-container, .navbar, .content: layout principal
+ * - .btn, .btn-primary, .btn-secondary: botones
+ * - .form-group, .form-section: formularios
+ * - .boards-grid, .board-card: tableros
+ * - .tasks-list, .task-item, .task-card: tareas
+ * - .kanban-board, .kanban-column: vista Kanban
+ * - .error-message: mensajes de error
+ */
+
+/* Mensajes de error temporales */
+#login-mensaje,
+#register-mensaje,
+#board-mensaje,
+#task-mensaje,
+.error-message {
+    color: #d32f2f;
+    font-weight: 600;
+    padding: 12px;
+    margin: 10px 0;
+    border: 1px solid #d32f2f;
+    background-color: #ffebee;
+    border-radius: 4px;
+    display: none;
+}
