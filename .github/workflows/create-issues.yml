@@ -1,0 +1,244 @@
+name: Crear Issues del Proyecto
+
+on:
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  create-labels:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Crear labels
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const labels = [
+              { name: 'database', color: 'e4b429', description: 'Relacionado con base de datos y modelos' },
+              { name: 'backend', color: '0075ca', description: 'Relacionado con el backend' },
+              { name: 'frontend', color: 'bfd4f2', description: 'Relacionado con el frontend' },
+              { name: 'tests', color: 'e11d48', description: 'Relacionado con pruebas' },
+              { name: 'documentation', color: '0e8a16', description: 'Relacionado con documentación' },
+            ];
+            for (const label of labels) {
+              try {
+                await github.rest.issues.createLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  name: label.name,
+                  color: label.color,
+                  description: label.description,
+                });
+                console.log(`Label '${label.name}' creado.`);
+              } catch (e) {
+                if (e.status === 422) {
+                  console.log(`Label '${label.name}' ya existe.`);
+                } else {
+                  throw e;
+                }
+              }
+            }
+
+  create-issues:
+    runs-on: ubuntu-latest
+    needs: create-labels
+    steps:
+      - name: Crear issues
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issues = [
+              // Base de datos y modelos (Persona 1)
+              {
+                title: '[Database] Terminar tarea.py',
+                body: '## Descripción\nCompletar el modelo `tarea.py` con todos los campos necesarios y relaciones correctas.\n\n## Criterios de aceptación\n- [ ] Modelo `Tarea` con campos: id, título, descripción, estado, fecha_creación, fecha_límite\n- [ ] Relaciones correctas con `Tablero` y `Usuario`\n- [ ] Exportado en `__init__.py`\n\n**Asignado a:** Persona 1',
+                labels: ['database', 'backend'],
+              },
+              {
+                title: '[Database] Crear usuario_tablero.py',
+                body: '## Descripción\nCrear el modelo de asociación `usuario_tablero.py` para la relación muchos a muchos entre usuarios y tableros.\n\n## Criterios de aceptación\n- [ ] Modelo `UsuarioTablero` con campos: usuario_id, tablero_id, rol\n- [ ] Relaciones configuradas correctamente\n- [ ] Exportado en `__init__.py`\n\n**Asignado a:** Persona 1',
+                labels: ['database', 'backend'],
+              },
+              {
+                title: '[Database] Configurar migrations/env.py para detección automática de modelos',
+                body: '## Descripción\nConfigurar `migrations/env.py` de Alembic para que detecte automáticamente todos los modelos SQLAlchemy al generar migraciones.\n\n## Criterios de aceptación\n- [ ] `env.py` importa todos los modelos\n- [ ] `target_metadata` apunta al `Base.metadata` correcto\n- [ ] Alembic detecta cambios en los modelos automáticamente\n\n**Asignado a:** Persona 1',
+                labels: ['database', 'backend'],
+              },
+              {
+                title: '[Database] Generar y correr la primera migración',
+                body: '## Descripción\nGenerar la primera migración con Alembic que cree todas las tablas del proyecto y aplicarla.\n\n## Criterios de aceptación\n- [ ] Migración generada con `alembic revision --autogenerate`\n- [ ] Migración aplicada con `alembic upgrade head`\n- [ ] No hay errores al aplicar la migración\n\n**Asignado a:** Persona 1',
+                labels: ['database', 'backend'],
+              },
+              {
+                title: '[Database] Verificar que las tablas se crean bien en PostgreSQL',
+                body: '## Descripción\nVerificar que todas las tablas se crean correctamente en PostgreSQL con los tipos de datos, constraints e índices esperados.\n\n## Criterios de aceptación\n- [ ] Tablas `usuarios`, `tableros`, `tareas`, `usuario_tablero` existen\n- [ ] Claves foráneas correctas\n- [ ] Constraints de unicidad e índices configurados\n\n**Asignado a:** Persona 1',
+                labels: ['database', 'backend'],
+              },
+              // Schemas / Pydantic (Persona 2)
+              {
+                title: '[Backend] Crear usuario_schema.py',
+                body: '## Descripción\nCrear los schemas Pydantic para el modelo de usuario: creación, actualización y respuesta.\n\n## Criterios de aceptación\n- [ ] `UsuarioCreate` con campos requeridos para registro\n- [ ] `UsuarioResponse` con campos públicos del usuario\n- [ ] Validaciones apropiadas (email, contraseña mínima, etc.)\n\n**Asignado a:** Persona 2',
+                labels: ['backend'],
+              },
+              {
+                title: '[Backend] Crear tablero_schema.py',
+                body: '## Descripción\nCrear los schemas Pydantic para el modelo de tablero: creación, actualización y respuesta.\n\n## Criterios de aceptación\n- [ ] `TableroCreate` con campos requeridos\n- [ ] `TableroResponse` con campos del tablero\n- [ ] `TableroUpdate` para actualizaciones parciales\n\n**Asignado a:** Persona 2',
+                labels: ['backend'],
+              },
+              {
+                title: '[Backend] Crear tarea_schema.py',
+                body: '## Descripción\nCrear los schemas Pydantic para el modelo de tarea: creación, actualización y respuesta.\n\n## Criterios de aceptación\n- [ ] `TareaCreate` con campos requeridos\n- [ ] `TareaResponse` con campos de la tarea\n- [ ] `TareaUpdate` para actualizaciones parciales\n- [ ] Validación del campo estado\n\n**Asignado a:** Persona 2',
+                labels: ['backend'],
+              },
+              // Repositorios (Persona 2)
+              {
+                title: '[Backend] Crear usuario_repositorio.py',
+                body: '## Descripción\nCrear el repositorio de usuarios con las operaciones de consulta a la base de datos.\n\n## Criterios de aceptación\n- [ ] `get_by_id(id)` — obtener usuario por ID\n- [ ] `get_by_email(email)` — obtener usuario por email\n- [ ] `create(usuario)` — crear usuario\n- [ ] `update(id, datos)` — actualizar usuario\n- [ ] `delete(id)` — eliminar usuario\n\n**Asignado a:** Persona 2',
+                labels: ['backend'],
+              },
+              {
+                title: '[Backend] Crear tablero_repositorio.py',
+                body: '## Descripción\nCrear el repositorio de tableros con las operaciones de consulta a la base de datos.\n\n## Criterios de aceptación\n- [ ] `get_by_id(id)` — obtener tablero por ID\n- [ ] `get_all_by_user(usuario_id)` — obtener tableros de un usuario\n- [ ] `create(tablero)` — crear tablero\n- [ ] `update(id, datos)` — actualizar tablero\n- [ ] `delete(id)` — eliminar tablero\n\n**Asignado a:** Persona 2',
+                labels: ['backend'],
+              },
+              {
+                title: '[Backend] Crear tarea_repositorio.py',
+                body: '## Descripción\nCrear el repositorio de tareas con las operaciones de consulta a la base de datos.\n\n## Criterios de aceptación\n- [ ] `get_by_id(id)` — obtener tarea por ID\n- [ ] `get_all_by_tablero(tablero_id)` — obtener tareas de un tablero\n- [ ] `create(tarea)` — crear tarea\n- [ ] `update(id, datos)` — actualizar tarea\n- [ ] `delete(id)` — eliminar tarea\n\n**Asignado a:** Persona 2',
+                labels: ['backend'],
+              },
+              // Services (Persona 2)
+              {
+                title: '[Backend] Crear usuario_service.py',
+                body: '## Descripción\nCrear el servicio de usuarios con la lógica de negocio: registro, autenticación, gestión de perfil.\n\n## Criterios de aceptación\n- [ ] Lógica para registro de usuario (hash de contraseña)\n- [ ] Lógica para autenticación (verificar contraseña)\n- [ ] Lógica para actualizar perfil\n- [ ] Manejo de errores (usuario ya existe, etc.)\n\n**Asignado a:** Persona 2',
+                labels: ['backend'],
+              },
+              {
+                title: '[Backend] Crear tablero_service.py',
+                body: '## Descripción\nCrear el servicio de tableros con la lógica de negocio: CRUD de tableros y gestión de miembros.\n\n## Criterios de aceptación\n- [ ] Crear, leer, actualizar, eliminar tableros\n- [ ] Verificar permisos del usuario sobre el tablero\n- [ ] Lógica para agregar/quitar miembros\n\n**Asignado a:** Persona 2',
+                labels: ['backend'],
+              },
+              {
+                title: '[Backend] Crear tarea_service.py',
+                body: '## Descripción\nCrear el servicio de tareas con la lógica de negocio: CRUD de tareas y cambio de estado.\n\n## Criterios de aceptación\n- [ ] Crear, leer, actualizar, eliminar tareas\n- [ ] Verificar permisos del usuario sobre la tarea\n- [ ] Lógica para cambio de estado de tarea\n\n**Asignado a:** Persona 2',
+                labels: ['backend'],
+              },
+              // Autenticación (Persona 4)
+              {
+                title: '[Backend] Configurar JWT con python-jose',
+                body: '## Descripción\nConfigurar la autenticación JWT usando la librería `python-jose` para generación y verificación de tokens.\n\n## Criterios de aceptación\n- [ ] Generación de tokens de acceso (access token)\n- [ ] Verificación y decodificación de tokens\n- [ ] Configuración de expiración de tokens\n- [ ] Secret key configurada en variables de entorno\n\n**Asignado a:** Persona 4',
+                labels: ['backend'],
+              },
+              {
+                title: '[Backend] Endpoint de registro',
+                body: '## Descripción\nCrear el endpoint `POST /auth/register` para el registro de nuevos usuarios.\n\n## Criterios de aceptación\n- [ ] Acepta nombre, email y contraseña\n- [ ] Valida que el email no esté registrado\n- [ ] Hashea la contraseña antes de guardar\n- [ ] Retorna datos del usuario creado (sin contraseña)\n\n**Asignado a:** Persona 4',
+                labels: ['backend'],
+              },
+              {
+                title: '[Backend] Endpoint de login',
+                body: '## Descripción\nCrear el endpoint `POST /auth/login` para la autenticación de usuarios y generación de JWT.\n\n## Criterios de aceptación\n- [ ] Acepta email y contraseña\n- [ ] Verifica credenciales contra la base de datos\n- [ ] Retorna access token JWT en caso de éxito\n- [ ] Retorna error 401 si las credenciales son incorrectas\n\n**Asignado a:** Persona 4',
+                labels: ['backend'],
+              },
+              {
+                title: '[Backend] Middleware para proteger rutas',
+                body: '## Descripción\nImplementar middleware/dependencia de FastAPI para proteger rutas que requieren autenticación.\n\n## Criterios de aceptación\n- [ ] Dependencia `get_current_user` que verifica el JWT del header Authorization\n- [ ] Retorna error 401 si el token es inválido o falta\n- [ ] Rutas protegidas retornan el usuario autenticado\n\n**Asignado a:** Persona 4',
+                labels: ['backend'],
+              },
+              // Redis (Persona 4)
+              {
+                title: '[Backend] Configurar conexión a Redis',
+                body: '## Descripción\nConfigurar la conexión a Redis usando la URL definida en variables de entorno del proyecto.\n\n## Criterios de aceptación\n- [ ] Cliente Redis configurado con la URL del docker-compose\n- [ ] Función de conexión reutilizable\n- [ ] Manejo de errores de conexión\n\n**Asignado a:** Persona 4',
+                labels: ['backend'],
+              },
+              {
+                title: '[Backend] Guardar sesiones de usuario en Redis',
+                body: '## Descripción\nImplementar el almacenamiento de sesiones de usuario en Redis para gestión de tokens activos.\n\n## Criterios de aceptación\n- [ ] Guardar token JWT en Redis con TTL igual a la expiración del token\n- [ ] Función para verificar si un token está activo\n- [ ] Función para invalidar un token (logout)\n\n**Asignado a:** Persona 4',
+                labels: ['backend'],
+              },
+              {
+                title: '[Backend] Configurar Pub/Sub para notificaciones en Redis',
+                body: '## Descripción\nConfigurar el sistema de Pub/Sub de Redis para enviar notificaciones en tiempo real entre servicios.\n\n## Criterios de aceptación\n- [ ] Publisher para publicar eventos (ej: tarea asignada)\n- [ ] Subscriber para consumir eventos\n- [ ] Integración con WebSockets o SSE para notificar al frontend\n\n**Asignado a:** Persona 4',
+                labels: ['backend'],
+              },
+              // Routers / Endpoints (Persona 3)
+              {
+                title: '[Backend] Router auth.py — registro y login',
+                body: '## Descripción\nCrear el router de autenticación `auth.py` que exponga los endpoints de registro y login.\n\n## Criterios de aceptación\n- [ ] `POST /auth/register` — registro de usuario\n- [ ] `POST /auth/login` — login y obtención de JWT\n- [ ] Router incluido en la aplicación principal\n\n**Asignado a:** Persona 3',
+                labels: ['backend'],
+              },
+              {
+                title: '[Backend] Router boards.py — CRUD de tableros',
+                body: '## Descripción\nCrear el router de tableros `boards.py` con operaciones CRUD completas.\n\n## Criterios de aceptación\n- [ ] `GET /boards` — listar tableros del usuario\n- [ ] `POST /boards` — crear tablero\n- [ ] `GET /boards/{id}` — obtener tablero por ID\n- [ ] `PUT /boards/{id}` — actualizar tablero\n- [ ] `DELETE /boards/{id}` — eliminar tablero\n- [ ] Rutas protegidas con autenticación JWT\n\n**Asignado a:** Persona 3',
+                labels: ['backend'],
+              },
+              {
+                title: '[Backend] Router tasks.py — CRUD de tareas',
+                body: '## Descripción\nCrear el router de tareas `tasks.py` con operaciones CRUD completas.\n\n## Criterios de aceptación\n- [ ] `GET /boards/{id}/tasks` — listar tareas de un tablero\n- [ ] `POST /boards/{id}/tasks` — crear tarea\n- [ ] `GET /tasks/{id}` — obtener tarea por ID\n- [ ] `PUT /tasks/{id}` — actualizar tarea\n- [ ] `DELETE /tasks/{id}` — eliminar tarea\n- [ ] Rutas protegidas con autenticación JWT\n\n**Asignado a:** Persona 3',
+                labels: ['backend'],
+              },
+              // Frontend (Persona 3)
+              {
+                title: '[Frontend] Pantalla de login y registro',
+                body: '## Descripción\nCrear la pantalla de login y registro de usuarios en el frontend.\n\n## Criterios de aceptación\n- [ ] Formulario de registro con campos: nombre, email, contraseña\n- [ ] Formulario de login con campos: email, contraseña\n- [ ] Manejo de errores y mensajes de validación\n- [ ] Redirección al dashboard tras login exitoso\n\n**Asignado a:** Persona 3',
+                labels: ['frontend'],
+              },
+              {
+                title: '[Frontend] Vista de tableros',
+                body: '## Descripción\nCrear la vista de tableros donde el usuario puede ver, crear y gestionar sus tableros.\n\n## Criterios de aceptación\n- [ ] Listado de tableros del usuario\n- [ ] Botón para crear nuevo tablero\n- [ ] Opción para eliminar tablero\n- [ ] Navegación a la vista de tareas del tablero\n\n**Asignado a:** Persona 3',
+                labels: ['frontend'],
+              },
+              {
+                title: '[Frontend] Vista de tareas por tablero',
+                body: '## Descripción\nCrear la vista de tareas asociadas a un tablero específico.\n\n## Criterios de aceptación\n- [ ] Listado de tareas del tablero\n- [ ] Crear nueva tarea\n- [ ] Cambiar estado de tarea\n- [ ] Editar y eliminar tareas\n\n**Asignado a:** Persona 3',
+                labels: ['frontend'],
+              },
+              {
+                title: '[Frontend] Consumo de la API con fetch',
+                body: '## Descripción\nImplementar la capa de acceso a la API usando `fetch` para comunicarse con el backend FastAPI.\n\n## Criterios de aceptación\n- [ ] Funciones reutilizables para llamadas GET, POST, PUT, DELETE\n- [ ] Inclusión automática del token JWT en los headers\n- [ ] Manejo de errores de API (401, 403, 404, 500)\n- [ ] Módulo centralizado de configuración de la URL base de la API\n\n**Asignado a:** Persona 3',
+                labels: ['frontend'],
+              },
+              // Tests
+              {
+                title: '[Tests] test_models.py',
+                body: '## Descripción\nCrear pruebas unitarias para los modelos SQLAlchemy del proyecto.\n\n## Criterios de aceptación\n- [ ] Tests para creación de `Usuario`\n- [ ] Tests para creación de `Tablero`\n- [ ] Tests para creación de `Tarea`\n- [ ] Tests para relaciones entre modelos\n- [ ] Uso de base de datos de prueba (SQLite en memoria)\n\n**Asignado a:** Persona 1',
+                labels: ['tests'],
+              },
+              {
+                title: '[Tests] test_endpoints.py',
+                body: '## Descripción\nCrear pruebas de integración para los endpoints de la API REST.\n\n## Criterios de aceptación\n- [ ] Tests para endpoints de autenticación (registro y login)\n- [ ] Tests para CRUD de tableros\n- [ ] Tests para CRUD de tareas\n- [ ] Tests de autorización (rutas protegidas)\n- [ ] Uso de `TestClient` de FastAPI\n\n**Asignado a:** Persona 2',
+                labels: ['tests'],
+              },
+              {
+                title: '[Tests] test_integration.py',
+                body: '## Descripción\nCrear pruebas de integración end-to-end que validen el flujo completo de la aplicación.\n\n## Criterios de aceptación\n- [ ] Test de flujo completo: registro → login → crear tablero → crear tarea\n- [ ] Tests con Redis integrado\n- [ ] Tests de notificaciones\n- [ ] Uso de contenedores Docker para las dependencias\n\n**Asignado a:** Persona 4',
+                labels: ['tests'],
+              },
+              // Documentación
+              {
+                title: '[Documentation] Actualizar README con instrucciones finales',
+                body: '## Descripción\nActualizar el README con instrucciones completas para levantar y usar el proyecto.\n\n## Criterios de aceptación\n- [ ] Instrucciones de instalación con Docker Compose\n- [ ] Variables de entorno necesarias\n- [ ] Cómo correr las migraciones\n- [ ] Cómo correr los tests\n- [ ] Descripción de la arquitectura del proyecto\n\n**Sin asignación específica**',
+                labels: ['documentation'],
+              },
+              {
+                title: '[Documentation] Documentar endpoints en README',
+                body: '## Descripción\nAgregar documentación de todos los endpoints de la API al README.\n\n## Criterios de aceptación\n- [ ] Lista de endpoints con método HTTP, ruta y descripción\n- [ ] Ejemplos de request y response en JSON\n- [ ] Indicación de qué rutas requieren autenticación\n- [ ] Referencia al Swagger UI generado por FastAPI (`/docs`)\n\n**Asignado a:** Persona 4',
+                labels: ['documentation'],
+              },
+            ];
+
+            for (const issue of issues) {
+              try {
+                const created = await github.rest.issues.create({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  title: issue.title,
+                  body: issue.body,
+                  labels: issue.labels,
+                });
+                console.log(`Issue creada: #${created.data.number} — ${issue.title}`);
+              } catch (e) {
+                console.error(`Error al crear issue "${issue.title}": ${e.message}`);
+                throw e;
+              }
+            }
